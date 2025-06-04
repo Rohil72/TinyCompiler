@@ -1,10 +1,11 @@
 public class Lexer {
     String source;
-    int index;
+    int index = -1;
     char currChar;
 
     public Lexer(String source){
         this.source = source;
+        nextChar();
     }
     // processing the next character, We check if we are at the end of our character and if we are we add a null character there
     //  else just pass the next character in the string
@@ -34,6 +35,12 @@ public class Lexer {
     }
 
     public void skipWhiteSpace(){
+        while(currChar == ' ' || currChar == '\t' || currChar == '\r' || currChar == '\n'){
+            nextChar();
+
+            // This function does not use any formal parameters due to not being static but that is unacceptable in production.
+            // Not due to non-static but it can possibly compromise mutability somehow.
+        }
 
     }
 
@@ -41,9 +48,42 @@ public class Lexer {
 
     }
 
-    public String getToken(){
+    public Token getToken(){
+        skipWhiteSpace();
 
-        return "";
+        Token token;
+
+        if(currChar == '+'){
+            token = new Token(currChar, TokenType.PLUS);
+        }
+
+        else if(currChar == '-'){
+            token = new Token(currChar, TokenType.MINUS);
+        }
+
+        else if(currChar == '*'){
+            token = new Token(currChar, TokenType.ASTERISK);
+        }
+        else if(currChar == '/'){
+            token = new Token(currChar, TokenType.SLASH);
+        }
+        else if(currChar == '\n'){
+            token = new Token(currChar, TokenType.NEWLINE);
+        }
+        else if(currChar == '\0'){
+            token = new Token(' ', TokenType.EOF);
+        }
+        else {
+            System.out.println("Invalid Token");
+            token = new Token(' ', TokenType.EOF);
+        }
+
+
+        nextChar();
+        return token;
+        // require return statement possibly using a variable even if it seems obvious I am mentioning it cause Python is like that
+
+
 
     }
 
@@ -51,3 +91,60 @@ public class Lexer {
 
 
 }
+class Token {
+    char text;
+    TokenType kind;
+
+    Token(char text, TokenType kind){
+        this.text = text;
+        this.kind = kind;
+    }
+
+
+}
+
+enum TokenType {
+    // Special tokens
+    EOF(-1),
+    NEWLINE(0),
+    NUMBER(1),
+    IDENT(2),
+    STRING(3),
+
+    // Keywords
+    LABEL(101),
+    GOTO(102),
+    PRINT(103),
+    INPUT(104),
+    LET(105),
+    IF(106),
+    THEN(107),
+    ENDIF(108),
+    WHILE(109),
+    REPEAT(110),
+    ENDWHILE(111),
+
+    // Operators
+    EQ(201),
+    PLUS(202),
+    MINUS(203),
+    ASTERISK(204),
+    SLASH(205),
+    EQEQ(206),
+    NOTEQ(207),
+    LT(208),
+    LTEQ(209),
+    GT(210),
+    GTEQ(211);
+
+    private final int value;
+
+    TokenType(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+}
+
