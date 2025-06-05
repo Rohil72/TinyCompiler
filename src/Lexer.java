@@ -4,8 +4,10 @@ public class Lexer {
     char currChar;
 
     public Lexer(String source){
-        this.source = source;
+        this.source = source + '\n';
         nextChar();
+
+
     }
     // processing the next character, We check if we are at the end of our character and if we are we add a null character there
     //  else just pass the next character in the string
@@ -35,7 +37,7 @@ public class Lexer {
     }
 
     public void skipWhiteSpace(){
-        while(currChar == ' ' || currChar == '\t' || currChar == '\r' || currChar == '\n'){
+        while(currChar == ' ' || currChar == '\t' || currChar == '\r'){
             nextChar();
 
             // This function does not use any formal parameters due to not being static but that is unacceptable in production.
@@ -45,57 +47,105 @@ public class Lexer {
     }
 
     public void skipComment(){
+        if(currChar == '#'){
+            while(currChar != '\n'){
+                nextChar();
+            }
 
+        }
     }
 
-    public Token getToken(){
+    public Token getToken() {
         skipWhiteSpace();
+        skipComment();
 
         Token token;
 
-        if(currChar == '+'){
-            token = new Token(currChar, TokenType.PLUS);
+        if (currChar == '+') {
+            token = new Token(String.valueOf(currChar), TokenType.PLUS);
+        } else if (currChar == '-') {
+            token = new Token(String.valueOf(currChar), TokenType.MINUS);
+        } else if (currChar == '*') {
+            token = new Token(String.valueOf(currChar), TokenType.ASTERISK);
+        } else if (currChar == '/') {
+            token = new Token(String.valueOf(currChar), TokenType.SLASH);
         }
+        // This is the start of two character Operators
+        else if (currChar == '=') {
+            if (peek() == '=') {
+                token = new Token("==", TokenType.EQEQ);
+                nextChar(); // consume second '='
+            } else {
+                token = new Token(String.valueOf(currChar), TokenType.EQ);
+            }
+        }
+        else if (currChar == '>') {
+            if (peek() == '=') {
+                token = new Token(">=", TokenType.GTEQ);
+                nextChar();
+            } else {
+                token = new Token(String.valueOf(currChar), TokenType.GT);
+            }
+        }
+        else if (currChar == '<') {
+            if (peek() == '=') {
+                token = new Token("<=", TokenType.LTEQ);
+                nextChar();
+            } else {
+                token = new Token(String.valueOf(currChar), TokenType.LT);
+            }
+        }
+        else if (currChar == '!') {
+            if (peek() == '=') {
+                token = new Token("!=", TokenType.NOTEQ);
+                nextChar();
+            } else {
+                System.out.println("Expected != but got !");
+                token = new Token(" ", TokenType.EOF);
+            }
+        }
+        // This exists for passing string for Printing
+        else if(currChar == '\"') {
 
-        else if(currChar == '-'){
-            token = new Token(currChar, TokenType.MINUS);
-        }
+            nextChar();
+            int start = index;
+            while(currChar != '\"'){
+                if(currChar == '\r' || currChar == '\t' || currChar == '\n' || currChar == '\\' || currChar == '%'){
+                    System.out.println("The character " + currChar + " is an illegal Character");
 
-        else if(currChar == '*'){
-            token = new Token(currChar, TokenType.ASTERISK);
+                }
+                nextChar();
+            }
+
+            token = new Token(source.substring(start, index), TokenType.STRING); // Rather than create a variable and inserting we can directly do it, python doesn't ?
+
+
         }
-        else if(currChar == '/'){
-            token = new Token(currChar, TokenType.SLASH);
+        else if (currChar == '\n') {
+            token = new Token("\\n", TokenType.NEWLINE);
         }
-        else if(currChar == '\n'){
-            token = new Token(currChar, TokenType.NEWLINE);
-        }
-        else if(currChar == '\0'){
-            token = new Token(' ', TokenType.EOF);
+        else if (currChar == '\0') {
+            token = new Token(" ", TokenType.EOF);
         }
         else {
-            System.out.println("Invalid Token");
-            token = new Token(' ', TokenType.EOF);
+            System.out.println("Invalid Token: " + currChar);
+            token = new Token(" ", TokenType.EOF);
         }
-
 
         nextChar();
         return token;
-        // require return statement possibly using a variable even if it seems obvious I am mentioning it cause Python is like that
-
-
-
     }
+
 
 
 
 
 }
 class Token {
-    char text;
+    String text;
     TokenType kind;
 
-    Token(char text, TokenType kind){
+    Token(String text, TokenType kind){
         this.text = text;
         this.kind = kind;
     }
