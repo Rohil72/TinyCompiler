@@ -55,6 +55,22 @@ public class Lexer {
         }
     }
 
+    public static TokenType checkIfKeyword(String tokenText) {
+
+        for (TokenType kind : TokenType.values()) {
+
+
+            if (kind.name().equals(tokenText.toUpperCase()) &&
+                    kind.getValue() >= 100 && kind.getValue() < 200) {
+
+                return kind;
+
+            }
+        }
+        return null;
+    }
+
+
     public Token getToken() {
         skipWhiteSpace();
         skipComment();
@@ -121,6 +137,49 @@ public class Lexer {
 
 
         }
+
+        // Checking if the Character is a Digit
+        else if(Character.isDigit(currChar)){
+            int start  = index;
+
+            while (Character.isDigit(peek())){
+                nextChar();
+            }
+
+            if( peek() == '.'){
+                nextChar();
+
+                if(!Character.isDigit(peek())){
+                    System.out.println("Error, An character in Number");
+                }
+                while(Character.isDigit(peek())){
+                    nextChar();
+                }
+            }
+
+            token = new Token(source.substring(start,index), TokenType.NUMBER);
+        }
+
+        // Checking if the input is an Identifier or Keyword
+
+        else if(Character.isAlphabetic(currChar)){
+            int start = index;
+
+            while(Character.isLetterOrDigit(peek())){
+                nextChar();
+            }
+            String tokText = source.substring(start,index+1);
+
+            TokenType keyword = checkIfKeyword(tokText);
+
+            if (keyword == null) {
+                token = new Token(tokText, TokenType.IDENT);
+            }
+            else {
+                token = new Token(tokText, keyword);
+            }
+        }
+
         else if (currChar == '\n') {
             token = new Token("\\n", TokenType.NEWLINE);
         }
