@@ -1,8 +1,16 @@
+import java.util.HashSet;
+import java.util.Set;
 public class Parser {
 
     Lexer lexer;
     Token currtoken;
     Token nextoken;
+
+    Set<String> labelsGOTOed = new HashSet<>();
+    Set<String> labelsDecleared = new HashSet<>();
+    Set<String> symbols = new HashSet<>();
+
+
     public Parser(Lexer lexer){
         this.lexer = lexer;
         nextToken();
@@ -115,8 +123,15 @@ public class Parser {
         }
 
         else if(checkToken(TokenType.IDENT)){
+            if(!symbols.contains(currtoken.text)){
+                System.out.println("Referencing a Variable before assigning it " + currtoken.text);
+                System.exit(1);
+            }
+
             nextToken();
         }
+
+
 
         else{
             System.out.println("Error in parsing, Unexpected Token at" + currtoken.text);
@@ -152,7 +167,7 @@ public class Parser {
 
             }
             else{
-                // Expect an Expression statement
+                expression();
             }
 
 
@@ -191,6 +206,8 @@ public class Parser {
             while(!checkToken(TokenType.ENDWHILE)){
                 statement();
             }
+
+            match(TokenType.ENDWHILE);
         }
 
         // "LABEL"  ident
@@ -199,8 +216,16 @@ public class Parser {
 
             nextToken();
 
+            if(labelsDecleared.contains(currtoken.text)){
+                System.out.println("Already Contains the Label" + currtoken.text);
+                System.exit(1);
+            }
+            labelsDecleared.add(currtoken.text);
+
+
+
             match(TokenType.IDENT);
-            expression();
+
 
         }
 
@@ -210,6 +235,10 @@ public class Parser {
             System.out.println("STATEMENT INPUT");
             nextToken();
 
+            if(!symbols.contains(currtoken.text)){
+                symbols.add(currtoken.text);
+            }
+
             match(TokenType.IDENT);
 
 
@@ -218,6 +247,8 @@ public class Parser {
         //GOTO ident
         else if(checkToken(TokenType.GOTO)){
             System.out.println("STATEMENT GOTO");
+
+            labelsGOTOed.add(currtoken.text);
 
             nextToken();
             match(TokenType.IDENT);
@@ -229,8 +260,12 @@ public class Parser {
 
             nextToken();
 
-            match(TokenType.IDENT);
+            if(!symbols.contains(currtoken.text)){
+                symbols.add(currtoken.text);
+            }
 
+
+            match(TokenType.IDENT);
             match(TokenType.EQ);
 
             expression();
@@ -262,6 +297,13 @@ public class Parser {
         while(!checkToken(TokenType.EOF)){
             statement();
         }
+
+        // Check that each label referenced in a GOTO is declared.
+        if(!labelsDecleared.containsAll(labelsGOTOed)){
+            System.out.println("Attempting to GOTO an undeclared variable");
+            System.exit(1);
+        }
+
 
     }
 }
