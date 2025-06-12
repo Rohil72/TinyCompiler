@@ -42,7 +42,7 @@ public class Main {
         parser.program();
 
 
-        System.out.println("Source Code:\n" + source);
+        System.out.println("Parsing completed");
     }
 
 
