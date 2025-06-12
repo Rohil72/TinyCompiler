@@ -19,7 +19,8 @@ public class Parser {
 
     public void match(TokenType type){
         if(!checkToken(type)){
-            System.out.println("Bad Match for Token");
+            System.out.println("Expected " + type + "got " + currtoken.kind);
+            System.exit(1);
         }
         nextToken();
 
@@ -30,13 +31,98 @@ public class Parser {
         currtoken = nextoken;
         nextoken = lexer.getToken();
     }
-
+    // This it for comparative Operators
     public void Comparison(){
         //This is to be built
+        System.out.println("Comparison");
+
+        expression();
+
+        if(isComparisonOperator()){
+            nextToken();
+            expression();
+
+        }
+        else{
+            System.out.println("Expected comparision Operator at " + currtoken.text);
+        }
+
+        while(isComparisonOperator()){
+            nextToken();
+            expression();
+        }
+
+
+    }
+
+    public boolean isComparisonOperator(){
+        return checkToken(TokenType.GT)  || checkToken(TokenType.GTEQ)
+                || checkToken(TokenType.LT) || checkToken(TokenType.LTEQ)
+                || checkToken(TokenType.EQEQ) || checkToken(TokenType.NOTEQ);
+
     }
 
     public void expression(){
-        // This is to be built
+        // Here we use the linearity of If and else statement to define for us
+        // the precedence logic we are using
+
+        System.out.println("EXPRESSION");
+
+        term();
+
+        while (checkToken(TokenType.PLUS) || checkToken(TokenType.MINUS)){
+            nextToken();
+            term();
+
+
+        }
+
+
+    }
+
+    public void term(){
+        System.out.println("TERM");
+
+        unary();
+
+        while(checkToken(TokenType.ASTERISK) || checkToken(TokenType.SLASH)){
+            nextToken();
+            unary();
+        }
+
+
+    }
+
+    public void unary(){
+        System.out.println("UNARY");
+
+        if(checkToken(TokenType.PLUS) || checkToken(TokenType.MINUS)){
+            nextToken();
+        }
+        primary();
+
+
+
+    }
+
+    public void primary(){
+        System.out.println("PRIMARY "  + "(" + currtoken.text + ")");
+
+
+        if(checkToken(TokenType.NUMBER)){
+            nextToken();
+
+        }
+
+        else if(checkToken(TokenType.IDENT)){
+            nextToken();
+        }
+
+        else{
+            System.out.println("Error in parsing, Unexpected Token at" + currtoken.text);
+            System.exit(1);
+        }
+
     }
 
 
@@ -84,6 +170,8 @@ public class Parser {
                 statement(); // It was all just Recursion ? Answer : Always has been
 
             }
+
+            match(TokenType.ENDIF);
 
 
 
@@ -145,11 +233,17 @@ public class Parser {
 
             match(TokenType.EQ);
 
+            expression();
+
 
         }
 
         else{
-            System.out.println("Invalid statement");
+            System.out.println("Invalid statement at " + currtoken.text + " with the type being " + currtoken.kind );
+            System.exit(1); // This is my first time using this statement, ISTG I have to use java for other than DSA
+
+
+
         }
 
         nl();
@@ -159,8 +253,15 @@ public class Parser {
     public void program(){
         System.out.println("Program");
 
+
+        // Checking for NEWLINE before the input stream starts
+        while(checkToken(TokenType.NEWLINE)){
+            nextToken();
+        }
+
         while(!checkToken(TokenType.EOF)){
             statement();
         }
+
     }
 }

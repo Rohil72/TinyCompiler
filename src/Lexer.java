@@ -157,7 +157,7 @@ public class Lexer {
                 }
             }
 
-            token = new Token(source.substring(start,index), TokenType.NUMBER);
+            token = new Token(source.substring(start,index +1 ), TokenType.NUMBER);
         }
 
         // Checking if the input is an Identifier or Keyword
