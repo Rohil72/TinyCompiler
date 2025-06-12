@@ -235,9 +235,7 @@ public class Parser {
             System.out.println("STATEMENT INPUT");
             nextToken();
 
-            if(!symbols.contains(currtoken.text)){
-                symbols.add(currtoken.text);
-            }
+            symbols.add(currtoken.text);
 
             match(TokenType.IDENT);
 
@@ -260,9 +258,7 @@ public class Parser {
 
             nextToken();
 
-            if(!symbols.contains(currtoken.text)){
-                symbols.add(currtoken.text);
-            }
+            symbols.add(currtoken.text);
 
 
             match(TokenType.IDENT);
