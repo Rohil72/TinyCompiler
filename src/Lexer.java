@@ -32,9 +32,6 @@ public class Lexer {
 
     }
 
-    public void abort(String message){
-
-    }
 
     public void skipWhiteSpace(){
         while(currChar == ' ' || currChar == '\t' || currChar == '\r'){
@@ -172,12 +169,8 @@ public class Lexer {
 
             TokenType keyword = checkIfKeyword(tokText);
 
-            if (keyword == null) {
-                token = new Token(tokText, TokenType.IDENT);
-            }
-            else {
-                token = new Token(tokText, keyword);
-            }
+            if (keyword == null) token = new Token(tokText, TokenType.IDENT);
+            else token = new Token(tokText, keyword);
         }
 
         else if (currChar == '\n') {
