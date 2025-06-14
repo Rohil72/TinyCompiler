@@ -46,6 +46,10 @@ public class Main {
 
 
         System.out.println("Compiling completed");
+        System.out.println("""
+                Try Running your code in the Compiler of your choice(You can script it as well)\s
+                 or Run it here:\s
+                 https://www.onlinegdb.com/online_c_compiler""");
     }
 
 
