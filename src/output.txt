@@ -1,0 +1,23 @@
+#include <stdio.h>
+int main(void){
+float a;
+float b;
+float ans;
+printf("Enter the number which is the base\n");
+if(0 == scanf("%f", &a)) { 
+a = 0;
+scanf("% *s");
+}
+printf("Enter the power\n");
+if(0 == scanf("%f", &b)) { 
+b = 0;
+scanf("% *s");
+}
+ans = 1;
+while(b>0){
+ans = ans*a;
+b = b-1;
+}
+printf("%.2f\n", (float)(ans));
+return 0;
+}

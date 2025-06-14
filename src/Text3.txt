@@ -1,0 +1,16 @@
+# This is my program being coded in language I wrote.
+# This code gives the power of a number.
+
+PRINT "Enter the number which is the base"
+INPUT a
+PRINT "Enter the power"
+INPUT b
+LET ans = 1
+
+WHILE b > 0 REPEAT
+ LET ans = ans*a
+ LET b = b - 1
+
+ENDWHILE
+
+PRINT ans

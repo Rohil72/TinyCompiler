@@ -29,7 +29,7 @@ public class Main {
         String source = "";
 
         try {
-            source = new String(Files.readAllBytes(Paths.get("src/Text.txt")));
+            source = new String(Files.readAllBytes(Paths.get("src/Text3.txt")));
         } catch (IOException e) {
             System.err.println("Error reading file: " + e.getMessage());
             System.exit(1);
@@ -37,12 +37,15 @@ public class Main {
 
         // You can now pass `source` to your Lexer or other compiler components
         Lexer lexer = new Lexer(source);
-        Parser parser = new Parser(lexer);
+        Emitter emitter = new Emitter("src/output.txt");
+        Parser parser = new Parser(lexer, emitter);
+
 
         parser.program();
+        emitter.writeFile();
 
 
-        System.out.println("Parsing completed");
+        System.out.println("Compiling completed");
     }
 
 

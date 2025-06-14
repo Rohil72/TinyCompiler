@@ -5,16 +5,19 @@ public class Parser {
     Lexer lexer;
     Token currtoken;
     Token nextoken;
+    Emitter emitter;
 
     Set<String> labelsGOTOed = new HashSet<>();
     Set<String> labelsDecleared = new HashSet<>();
     Set<String> symbols = new HashSet<>();
 
 
-    public Parser(Lexer lexer){
+    public Parser(Lexer lexer, Emitter emitter){
         this.lexer = lexer;
+        this.emitter = emitter;
         nextToken();
         nextToken();
+
     }
 
     public boolean checkToken(TokenType type){
@@ -41,12 +44,13 @@ public class Parser {
     }
     // This it for comparative Operators
     public void Comparison(){
-        //This is to be built
-        System.out.println("Comparison");
+
+
 
         expression();
 
         if(isComparisonOperator()){
+            emitter.emit(currtoken.text);
             nextToken();
             expression();
 
@@ -56,6 +60,7 @@ public class Parser {
         }
 
         while(isComparisonOperator()){
+            emitter.emit(currtoken.text);
             nextToken();
             expression();
         }
@@ -74,11 +79,12 @@ public class Parser {
         // Here we use the linearity of If and else statement to define for us
         // the precedence logic we are using
 
-        System.out.println("EXPRESSION");
+
 
         term();
 
         while (checkToken(TokenType.PLUS) || checkToken(TokenType.MINUS)){
+            emitter.emit(currtoken.text);
             nextToken();
             term();
 
@@ -89,11 +95,13 @@ public class Parser {
     }
 
     public void term(){
-        System.out.println("TERM");
+
 
         unary();
 
         while(checkToken(TokenType.ASTERISK) || checkToken(TokenType.SLASH)){
+            emitter.emit(currtoken.text);
+
             nextToken();
             unary();
         }
@@ -102,9 +110,10 @@ public class Parser {
     }
 
     public void unary(){
-        System.out.println("UNARY");
+
 
         if(checkToken(TokenType.PLUS) || checkToken(TokenType.MINUS)){
+            emitter.emit(currtoken.text);
             nextToken();
         }
         primary();
@@ -114,10 +123,11 @@ public class Parser {
     }
 
     public void primary(){
-        System.out.println("PRIMARY "  + "(" + currtoken.text + ")");
+
 
 
         if(checkToken(TokenType.NUMBER)){
+            emitter.emit(currtoken.text);
             nextToken();
 
         }
@@ -128,6 +138,7 @@ public class Parser {
                 System.exit(1);
             }
 
+            emitter.emit(currtoken.text);
             nextToken();
         }
 
@@ -144,7 +155,7 @@ public class Parser {
     // New line accommodation Function
 
     public void nl(){
-        System.out.println("NEWLINE");
+
 
         match(TokenType.NEWLINE);
         // If multiple Newline are alongside each other
@@ -157,37 +168,43 @@ public class Parser {
     public void statement(){
 
         if(checkToken(TokenType.PRINT)){
-            System.out.println("STATEMENT PRINT");
+
             nextToken();
 
             if(checkToken(TokenType.STRING)){
                 // Simple string
+                emitter.emitLine("printf(\"" + currtoken.text + "\\n\");");
 
                 nextToken();
 
             }
             else{
+                emitter.emit("printf(\"%" + ".2f\\n\", (float)(");
                 expression();
+                emitter.emitLine("));");
+
+
             }
 
 
         }
         // "IF" comparison "THEN" {statement} "ENDIF"
         else if(checkToken(TokenType.IF)){
-            System.out.println("STATEMENT - IF");
+
             nextToken();
+            emitter.emit("if(");
             Comparison();
 
             match(TokenType.THEN);
             nl();
-
+            emitter.emitLine("){");
             while(!checkToken(TokenType.ENDIF)){
                 statement(); // It was all just Recursion ? Answer : Always has been
 
             }
 
             match(TokenType.ENDIF);
-
+            emitter.emitLine("}");
 
 
         }
@@ -196,23 +213,25 @@ public class Parser {
 
 
         else if(checkToken(TokenType.WHILE)){
-            System.out.println("STATEMENT WHILE");
+
             nextToken();
+            emitter.emit("while(");
             Comparison();
 
             match(TokenType.REPEAT);
             nl();
-
+            emitter.emitLine("){");
             while(!checkToken(TokenType.ENDWHILE)){
                 statement();
             }
 
             match(TokenType.ENDWHILE);
+            emitter.emitLine("}");
         }
 
         // "LABEL"  ident
         else if(checkToken(TokenType.LABEL)){
-            System.out.println("STATEMENT - LABEL");
+
 
             nextToken();
 
@@ -222,6 +241,7 @@ public class Parser {
             }
             labelsDecleared.add(currtoken.text);
 
+            emitter.emitLine(currtoken.text + ":");
 
 
             match(TokenType.IDENT);
@@ -232,10 +252,18 @@ public class Parser {
         // "INPUT" ident
 
         else if(checkToken(TokenType.INPUT)){
-            System.out.println("STATEMENT INPUT");
-            nextToken();
 
+            nextToken();
+            if(!symbols.contains(currtoken.text)){
+                emitter.headerLine("float " + currtoken.text + ";");
+
+            }
             symbols.add(currtoken.text);
+            emitter.emitLine("if(0 == scanf(\"%" + "f\", &" + currtoken.text + ")) { ");
+            emitter.emitLine(currtoken.text + " = 0;");
+            emitter.emit("scanf(\"% ");
+            emitter.emitLine("*s\");");
+            emitter.emitLine("}");
 
             match(TokenType.IDENT);
 
@@ -244,28 +272,31 @@ public class Parser {
 
         //GOTO ident
         else if(checkToken(TokenType.GOTO)){
-            System.out.println("STATEMENT GOTO");
+
 
             labelsGOTOed.add(currtoken.text);
-
+            emitter.emitLine("goto " + currtoken.text + ";");
             nextToken();
             match(TokenType.IDENT);
         }
 
         // "LET" ident  "=" expression
         else if(checkToken(TokenType.LET)){
-            System.out.println("STATEMENT LET");
+
 
             nextToken();
 
+            if(!symbols.contains(currtoken.text)){
+                emitter.headerLine("float "+ currtoken.text + ";");
+            }
             symbols.add(currtoken.text);
 
-
+            emitter.emit(currtoken.text + " = ");
             match(TokenType.IDENT);
             match(TokenType.EQ);
 
             expression();
-
+            emitter.emitLine(";");
 
         }
 
@@ -282,7 +313,9 @@ public class Parser {
     }
 
     public void program(){
-        System.out.println("Program");
+        emitter.headerLine("#include <stdio.h>");
+        emitter.headerLine("int main(void){");
+
 
 
         // Checking for NEWLINE before the input stream starts
@@ -293,6 +326,10 @@ public class Parser {
         while(!checkToken(TokenType.EOF)){
             statement();
         }
+
+        emitter.emitLine("return 0;");
+        emitter.emitLine("}");
+
 
         // Check that each label referenced in a GOTO is declared.
         if(!labelsDecleared.containsAll(labelsGOTOed)){
